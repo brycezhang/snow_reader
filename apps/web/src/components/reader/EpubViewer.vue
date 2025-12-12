@@ -12,7 +12,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   loaded: []
   error: [message: string]
-  wordClick: [word: string, context: string, position: { x: number; y: number }]
+  textSelected: [text: string, position: { x: number; y: number }]
+  wordClicked: [word: string, meaning: string, context: string, position: { x: number; y: number }]
 }>()
 
 const readerStore = useReaderStore()
@@ -36,9 +37,10 @@ const loadEpub = async () => {
       // 应用初始主题
       applyCurrentTheme()
 
-      // 监听渲染完成，注入注释
+      // 监听渲染完成，注入注释和选中事件
       rend.on('rendered', () => {
         injectAnnotations()
+        setupSelectionListener()
       })
 
       emit('loaded')
@@ -148,17 +150,17 @@ const processTextNode = (textNode: Text, doc: Document) => {
         wordSpan.style.cssText = 'cursor: pointer;'
         wordSpan.dataset.word = part.word
 
-        // 点击单词触发词典弹窗
+        // 点击已注释单词直接显示翻译
         wordSpan.addEventListener('click', (e) => {
           e.stopPropagation()
           const rect = wordSpan.getBoundingClientRect()
           const iframe = viewerRef.value?.querySelector('iframe')
           const iframeRect = iframe?.getBoundingClientRect() || { left: 0, top: 0 }
           
-          // 获取上下文（单词所在句子）
-          const sentence = getSentenceContext(wordSpan)
+          // 获取句子上下文
+          const context = getSentenceContext(wordSpan)
           
-          emit('wordClick', part.word, sentence, {
+          emit('wordClicked', part.word, part.annotation, context, {
             x: rect.left + iframeRect.left,
             y: rect.bottom + iframeRect.top + 5,
           })
@@ -198,6 +200,34 @@ const getSentenceContext = (element: HTMLElement): string => {
     }
   }
   return text.slice(0, 200)
+}
+
+// 监听 iframe 内的文本选中事件
+const setupSelectionListener = () => {
+  if (!rendition.value) return
+
+  const contents = rendition.value.getContents()
+  contents.forEach((content: { document: Document; window: Window }) => {
+    const doc = content.document
+    const win = content.window
+    if (!doc || !win) return
+
+    doc.addEventListener('mouseup', (e: MouseEvent) => {
+      const selection = win.getSelection()
+      const text = selection?.toString().trim()
+      
+      if (!text) return
+      
+      // 获取 iframe 位置偏移
+      const iframe = viewerRef.value?.querySelector('iframe')
+      const iframeRect = iframe?.getBoundingClientRect() || { left: 0, top: 0 }
+      
+      emit('textSelected', text, {
+        x: e.clientX + iframeRect.left,
+        y: e.clientY + iframeRect.top - 40,
+      })
+    })
+  })
 }
 
 // 判断是否应该显示注释

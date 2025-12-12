@@ -69,7 +69,7 @@ export function useOllama() {
     try {
       // 使用 /no_think 禁用 qwen3 的思考模式，避免重复输出
       const prompt = context
-        ? `/no_think\n用一句简洁的中文解释英文单词 "${word}" 在这个语境中的意思：${context.slice(0, 100)}`
+        ? `/no_think\n用一句简洁的中文解释英文单词 "${word}" 在这个语境中的意思：${context.slice(0, 256)}`
         : `/no_think\n用一句简洁的中文解释英文单词 "${word}" 的意思`
 
       const response = await fetch(`${config.value.baseUrl}/api/generate`, {
@@ -80,8 +80,8 @@ export function useOllama() {
           prompt,
           stream: false,
           options: {
-            temperature: 0.1,
-            num_predict: 100,
+            temperature: 0.2,
+            num_predict: 256,
           },
         }),
       })

@@ -3,13 +3,14 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import ReaderSidebar from '@/components/reader/ReaderSidebar.vue'
 import EpubViewer from '@/components/reader/EpubViewer.vue'
-import DictionaryPopup from '@/components/reader/DictionaryPopup.vue'
 import { useReaderStore } from '@/stores/reader'
+import { useOllama } from '@/composables/useOllama'
 
 const route = useRoute()
 const bookId = route.params.id as string
 
 const readerStore = useReaderStore()
+const { translate, lookupWord } = useOllama()
 const epubViewerRef = ref<InstanceType<typeof EpubViewer>>()
 
 // 书籍数据
@@ -51,23 +52,107 @@ const triggerFileUpload = () => {
   fileInputRef.value?.click()
 }
 
-// 词典弹窗
-const showDictionary = ref(false)
-const selectedWord = ref('')
-const selectedContext = ref('')
-const popupPosition = ref({ x: 0, y: 0 })
-const popupKey = ref(0)
+// 浮动菜单
+const showMenu = ref(false)
+const menuPosition = ref({ x: 0, y: 0 })
+const selectedText = ref('')
 
-const handleWordClick = (word: string, context: string, position: { x: number; y: number }) => {
-  selectedWord.value = word
-  selectedContext.value = context
-  popupPosition.value = position
-  popupKey.value++
-  showDictionary.value = true
+// 翻译弹窗
+const showResult = ref(false)
+const resultPosition = ref({ x: 0, y: 0 })
+const translation = ref('')
+const isTranslating = ref(false)
+
+// 处理来自 EpubViewer 的选中事件（显示菜单）
+const handleTextSelected = (text: string, position: { x: number; y: number }) => {
+  selectedText.value = text
+  menuPosition.value = position
+  showMenu.value = true
+  showResult.value = false
 }
 
-const closeDictionary = () => {
-  showDictionary.value = false
+// 句子上下文
+const sentenceContext = ref('')
+
+// 处理已注释单词点击（直接显示翻译，同时调用 AI 获取更准确的释义）
+const handleWordClicked = async (word: string, meaning: string, context: string, position: { x: number; y: number }) => {
+  selectedText.value = word
+  sentenceContext.value = context
+  translation.value = meaning // 先显示词库释义
+  showMenu.value = false
+  const maxX = window.innerWidth - 340
+  const maxY = window.innerHeight - 200
+  resultPosition.value = {
+    x: Math.min(position.x, maxX),
+    y: Math.min(position.y, maxY)
+  }
+  showResult.value = true
+  isTranslating.value = true
+  
+  // 调用 AI 获取基于上下文的释义
+  try {
+    const aiMeaning = await lookupWord(word, context)
+    if (aiMeaning) {
+      translation.value = aiMeaning
+    }
+  } finally {
+    isTranslating.value = false
+  }
+}
+
+const handleTranslate = async () => {
+  if (!selectedText.value) return
+  
+  // 隐藏菜单，显示结果弹窗
+  showMenu.value = false
+  const maxX = window.innerWidth - 340
+  const maxY = window.innerHeight - 200
+  resultPosition.value = {
+    x: Math.min(menuPosition.value.x, maxX),
+    y: Math.min(menuPosition.value.y + 50, maxY)
+  }
+  showResult.value = true
+  translation.value = ''
+  isTranslating.value = true
+  
+  try {
+    translation.value = await translate(selectedText.value)
+  } finally {
+    isTranslating.value = false
+  }
+}
+
+const closeResult = () => {
+  showResult.value = false
+  selectedText.value = ''
+}
+
+// 拖动功能
+const isDragging = ref(false)
+const dragOffset = ref({ x: 0, y: 0 })
+
+const startDrag = (e: MouseEvent) => {
+  isDragging.value = true
+  dragOffset.value = {
+    x: e.clientX - resultPosition.value.x,
+    y: e.clientY - resultPosition.value.y
+  }
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
+}
+
+const onDrag = (e: MouseEvent) => {
+  if (!isDragging.value) return
+  resultPosition.value = {
+    x: Math.max(0, Math.min(e.clientX - dragOffset.value.x, window.innerWidth - 320)),
+    y: Math.max(0, Math.min(e.clientY - dragOffset.value.y, window.innerHeight - 100))
+  }
+}
+
+const stopDrag = () => {
+  isDragging.value = false
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
 }
 </script>
 
@@ -130,7 +215,8 @@ const closeDictionary = () => {
           :book-data="bookData"
           @loaded="handleBookLoaded"
           @error="handleError"
-          @word-click="handleWordClick"
+          @text-selected="handleTextSelected"
+          @word-clicked="handleWordClicked"
         />
 
         <!-- 空状态 -->
@@ -168,16 +254,60 @@ const closeDictionary = () => {
       </div>
     </div>
 
-    <!-- 词典弹窗 -->
+    <!-- 浮动菜单 -->
     <Teleport to="body">
-      <DictionaryPopup
-        v-if="showDictionary"
-        :key="popupKey"
-        :word="selectedWord"
-        :context="selectedContext"
-        :position="popupPosition"
-        @close="closeDictionary"
-      />
+      <div
+        v-if="showMenu"
+        class="selection-menu fixed z-[9999] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 px-2 py-1"
+        :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }"
+      >
+        <button
+          class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors"
+          @click="handleTranslate"
+        >
+          🌐 翻译
+        </button>
+      </div>
+    </Teleport>
+
+    <!-- 翻译结果弹窗 -->
+    <Teleport to="body">
+      <div v-if="showResult" class="translation-popup">
+        <!-- 背景遮罩 -->
+        <div class="fixed inset-0 z-[9998]" @click="closeResult"></div>
+        <!-- 弹窗 -->
+        <div
+          class="fixed z-[9999] w-80 max-h-[60vh] overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700"
+          :style="{ left: resultPosition.x + 'px', top: resultPosition.y + 'px' }"
+          @click.stop
+        >
+          <!-- 可拖动的标题栏 -->
+          <div
+            class="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-t-xl cursor-move select-none"
+            @mousedown="startDrag"
+          >
+            <span class="text-xs font-medium text-blue-600">AI 翻译</span>
+            <button class="text-gray-400 hover:text-red-500 text-lg" @click="closeResult">×</button>
+          </div>
+          
+          <!-- 内容区 -->
+          <div class="p-4">
+          
+          <!-- 原文 -->
+          <div class="text-sm text-gray-600 dark:text-gray-400 mb-3 p-2 bg-gray-50 dark:bg-gray-700/50 rounded max-h-24 overflow-y-auto">
+            {{ selectedText }}
+          </div>
+          
+          <!-- 翻译结果 -->
+          <div v-if="isTranslating" class="py-3 text-center text-gray-500 text-sm">
+            翻译中...
+          </div>
+          <div v-else-if="translation" class="p-2 bg-green-50 dark:bg-green-900/20 rounded text-sm text-gray-800 dark:text-gray-200">
+            {{ translation }}
+          </div>
+          </div>
+        </div>
+      </div>
     </Teleport>
   </div>
 </template>
