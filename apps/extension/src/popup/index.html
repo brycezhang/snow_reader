@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snow Reader</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        width: 300px;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 14px;
+        background: #fff;
+        color: #333;
+      }
+
+      .header {
+        padding: 16px;
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        color: white;
+      }
+
+      .header h1 {
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .header p {
+        font-size: 12px;
+        opacity: 0.9;
+        margin-top: 4px;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .toggle {
+        width: 44px;
+        height: 24px;
+        background: #ddd;
+        border-radius: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .toggle.active {
+        background: #0ea5e9;
+      }
+
+      .toggle::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.2s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      .toggle.active::after {
+        transform: translateX(20px);
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .stat-card {
+        background: #f8fafc;
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: #0ea5e9;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #666;
+        margin-top: 4px;
+      }
+
+      .btn {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        margin-top: 16px;
+        background: #0ea5e9;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .btn:hover {
+        background: #0284c7;
+      }
+
+      .btn-secondary {
+        background: #f1f5f9;
+        color: #333;
+      }
+
+      .btn-secondary:hover {
+        background: #e2e8f0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Snow Reader</h1>
+      <p>英文阅读学习助手</p>
+    </div>
+
+    <div class="content">
+      <div class="toggle-row">
+        <span>启用划词查词</span>
+        <div id="toggleExtension" class="toggle active"></div>
+      </div>
+
+      <div class="toggle-row">
+        <span>显示行内注释</span>
+        <div id="toggleAnnotation" class="toggle"></div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-value" id="wordCount">0</div>
+          <div class="stat-label">今日查词</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="highlightCount">0</div>
+          <div class="stat-label">高亮数量</div>
+        </div>
+      </div>
+
+      <button id="sendToWeb" class="btn">发送到 Snow Reader</button>
+      <button id="openApp" class="btn btn-secondary">打开 Web 应用</button>
+    </div>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

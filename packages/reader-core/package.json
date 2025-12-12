@@ -1,0 +1,26 @@
+{
+  "name": "@snow-reader/reader-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint . --ext .ts --fix"
+  },
+  "dependencies": {
+    "@readium/shared": "^2.1.1",
+    "@readium/navigator-web": "^1.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

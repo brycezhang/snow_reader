@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snow Reader - Side Panel</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 14px;
+        background: #f8fafc;
+        color: #333;
+        min-height: 100vh;
+      }
+
+      .header {
+        padding: 16px;
+        background: white;
+        border-bottom: 1px solid #eee;
+        position: sticky;
+        top: 0;
+      }
+
+      .header h1 {
+        font-size: 16px;
+        color: #0ea5e9;
+      }
+
+      .tabs {
+        display: flex;
+        background: white;
+        border-bottom: 1px solid #eee;
+      }
+
+      .tab {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+      }
+
+      .tab.active {
+        color: #0ea5e9;
+        border-bottom-color: #0ea5e9;
+      }
+
+      .tab:hover {
+        background: #f1f5f9;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .section {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+      }
+
+      .section h2 {
+        font-size: 14px;
+        margin-bottom: 12px;
+        color: #666;
+      }
+
+      .word-entry {
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .word-entry:last-child {
+        border-bottom: none;
+      }
+
+      .word-title {
+        font-weight: 600;
+        font-size: 16px;
+      }
+
+      .word-phonetic {
+        color: #666;
+        font-size: 12px;
+        margin-left: 8px;
+      }
+
+      .word-definition {
+        margin-top: 8px;
+        color: #444;
+      }
+
+      .word-pos {
+        color: #0ea5e9;
+        font-size: 12px;
+        margin-right: 4px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 32px;
+        color: #999;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Snow Reader</h1>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="dictionary">词典</div>
+      <div class="tab" data-tab="vocabulary">生词</div>
+      <div class="tab" data-tab="notes">笔记</div>
+    </div>
+
+    <div class="content">
+      <div id="dictionary-panel" class="panel">
+        <div class="section">
+          <div id="dictionary-content" class="empty-state">选中文本查看释义</div>
+        </div>
+      </div>
+
+      <div id="vocabulary-panel" class="panel" style="display: none">
+        <div class="section">
+          <h2>今日生词</h2>
+          <div id="vocabulary-list" class="empty-state">暂无生词</div>
+        </div>
+      </div>
+
+      <div id="notes-panel" class="panel" style="display: none">
+        <div class="section">
+          <h2>本页笔记</h2>
+          <div id="notes-list" class="empty-state">暂无笔记</div>
+        </div>
+      </div>
+    </div>
+
+    <script src="sidepanel.js" type="module"></script>
+  </body>
+</html>

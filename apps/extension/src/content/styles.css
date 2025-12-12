@@ -1,0 +1,55 @@
+.snow-token {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-radius: 2px;
+}
+
+.snow-token:hover {
+  background-color: rgba(14, 165, 233, 0.15);
+}
+
+.snow-highlight {
+  border-radius: 2px;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.snow-highlight:hover {
+  filter: brightness(0.95);
+}
+
+.snow-annotation {
+  position: relative;
+}
+
+.snow-annotation::after {
+  content: attr(data-annotation);
+  position: absolute;
+  top: -1.2em;
+  left: 0;
+  font-size: 0.65em;
+  color: #666;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+snow-reader-popup {
+  display: block;
+  position: fixed;
+  z-index: 999999;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 12px;
+  max-width: 320px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  snow-reader-popup {
+    background: #1a1a2e;
+    color: #e0e0e0;
+  }
+}

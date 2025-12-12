@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  settings         UserSettings?
+  books            Book[]
+  articles         Article[]
+  highlights       Highlight[]
+  notes            Note[]
+  vocabItems       VocabItem[]
+  readingPositions ReadingPosition[]
+  lookupHistory    LookupHistory[]
+  dailyStats       StatsDaily[]
+}
+
+model UserSettings {
+  id                String  @id @default(cuid())
+  userId            String  @unique
+  readerPreferences Json    @default("{}")
+  extensionEnabled  Boolean @default(true)
+  annotationEnabled Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Book {
+  id             String   @id @default(cuid())
+  userId         String
+  title          String
+  author         String   @default("Unknown")
+  cover          String?
+  publicationUrl String
+  progress       Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  highlights       Highlight[]
+  vocabItems       VocabItem[]
+  readingPositions ReadingPosition[]
+
+  @@index([userId])
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  sourceUrl   String
+  content     String
+  readingTime Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  highlights       Highlight[]
+  vocabItems       VocabItem[]
+  readingPositions ReadingPosition[]
+
+  @@index([userId])
+}
+
+model ReadingPosition {
+  id         String   @id @default(cuid())
+  userId     String
+  bookId     String?
+  articleId  String?
+  cfi        String?
+  anchor     String?
+  percentage Float    @default(0)
+  updatedAt  DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book    Book?    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  article Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@unique([userId, articleId])
+}
+
+model Highlight {
+  id        String   @id @default(cuid())
+  userId    String
+  bookId    String?
+  articleId String?
+  cfi       String?
+  xpath     String?
+  offset    Int?
+  text      String
+  color     String   @default("#ffeb3b")
+  tags      String[] @default([])
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book    Book?    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  article Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  notes   Note[]
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([articleId])
+}
+
+model Note {
+  id          String   @id @default(cuid())
+  userId      String
+  highlightId String
+  text        String
+  tags        String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  highlight Highlight @relation(fields: [highlightId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([highlightId])
+}
+
+model VocabItem {
+  id             String   @id @default(cuid())
+  userId         String
+  lemma          String
+  displayWord    String
+  bookId         String?
+  articleId      String?
+  masteryLevel   Int      @default(0)
+  contextSnippet String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book    Book?    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  article Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lemma])
+  @@index([userId])
+}
+
+model LookupHistory {
+  id             String   @id @default(cuid())
+  userId         String
+  word           String
+  lemma          String
+  contextSnippet String?
+  source         String?
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lemma])
+}
+
+model StatsDaily {
+  id               String   @id @default(cuid())
+  userId           String
+  date             DateTime @db.Date
+  readingMinutes   Int      @default(0)
+  lookupCount      Int      @default(0)
+  chaptersComplete Int      @default(0)
+  articlesRead     Int      @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+}

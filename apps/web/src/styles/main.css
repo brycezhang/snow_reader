@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg-primary: theme('colors.white');
+    --color-bg-secondary: theme('colors.gray.50');
+    --color-text-primary: theme('colors.gray.900');
+    --color-text-secondary: theme('colors.gray.600');
+    --color-border: theme('colors.gray.200');
+    --color-accent: theme('colors.primary.500');
+  }
+
+  .dark {
+    --color-bg-primary: theme('colors.gray.900');
+    --color-bg-secondary: theme('colors.gray.800');
+    --color-text-primary: theme('colors.gray.100');
+    --color-text-secondary: theme('colors.gray.400');
+    --color-border: theme('colors.gray.700');
+    --color-accent: theme('colors.primary.400');
+  }
+
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-[var(--color-bg-primary)] text-[var(--color-text-primary)];
+    @apply transition-colors duration-200;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg;
+    @apply font-medium text-sm transition-colors duration-150;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-500 text-white;
+    @apply hover:bg-primary-600;
+    @apply focus:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply btn bg-gray-100 text-gray-700;
+    @apply hover:bg-gray-200;
+    @apply focus:ring-gray-500;
+    @apply dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
+  }
+
+  .card {
+    @apply bg-[var(--color-bg-primary)] rounded-xl shadow-sm;
+    @apply border border-[var(--color-border)];
+    @apply p-4;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 rounded-lg;
+    @apply bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)];
+    @apply border border-[var(--color-border)];
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply placeholder:text-[var(--color-text-secondary)];
+  }
+}

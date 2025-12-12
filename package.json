@@ -1,0 +1,34 @@
+{
+  "name": "snow-reader",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web 英文电子书/网页阅读与学习器 + Chrome 插件",
+  "type": "module",
+  "scripts": {
+    "dev:web": "pnpm --filter @snow-reader/web dev",
+    "dev:api": "pnpm --filter @snow-reader/api dev",
+    "dev:extension": "pnpm --filter @snow-reader/extension dev",
+    "build:web": "pnpm --filter @snow-reader/web build",
+    "build:api": "pnpm --filter @snow-reader/api build",
+    "build:extension": "pnpm --filter @snow-reader/extension build",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write .",
+    "test": "pnpm -r test",
+    "clean": "pnpm -r clean && rm -rf node_modules"
+  },
+  "keywords": [
+    "epub",
+    "reader",
+    "english-learning",
+    "chrome-extension",
+    "pwa"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
